@@ -13,7 +13,6 @@ server_log.txt
 
 # PLY / 3D assets (générés, pas dans le repo)
 ui_result/
-scene/
 *.ply
 *.splat
 *.obj

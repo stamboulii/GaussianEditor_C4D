@@ -135,8 +135,8 @@ class GaussianEditorDialog(gui.GeDialog):
                 self.AddEditText(UI.EDT_SAVE_PATH, c4d.BFH_SCALEFIT)
                 self.AddButton(UI.BTN_SAVE,
                                c4d.BFH_RIGHT, initw=60, name="Sauver")
-                self.AddButton(UI.BTN_EXPORT_SPLAT,
-                               c4d.BFH_RIGHT, initw=60, name=".splat")
+                # self.AddButton(UI.BTN_EXPORT_SPLAT,
+                #                c4d.BFH_RIGHT, initw=60, name=".splat")
             self.GroupEnd()
         self.GroupEnd()
 
