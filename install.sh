@@ -153,8 +153,18 @@ step "Etape 4 : PyTorch CUDA"
 if python -c "import torch; assert torch.cuda.is_available()" 2>/dev/null; then
     ok "PyTorch CUDA deja installe : $(python -c 'import torch; print(torch.__version__)')"
 else
-    info "Installation PyTorch avec support CUDA..."
-    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118 -q
+    info "Detection version CUDA..."
+    CUDA_VERSION=$(nvidia-smi | grep "CUDA Version" | awk '{print $NF}' | cut -d. -f1)
+    info "CUDA version majeure : $CUDA_VERSION"
+
+    if [ "$CUDA_VERSION" -ge 12 ] 2>/dev/null; then
+        TORCH_INDEX="https://download.pytorch.org/whl/cu128"
+        info "Installation PyTorch CUDA 12.8+ (RTX 40/50 series)..."
+    else
+        TORCH_INDEX="https://download.pytorch.org/whl/cu118"
+        info "Installation PyTorch CUDA 11.8 (RTX 30 series et avant)..."
+    fi
+    pip install torch torchvision --index-url "$TORCH_INDEX" -q
     python -c "import torch; assert torch.cuda.is_available()" || \
         err "PyTorch CUDA non fonctionnel. Verifiez vos drivers NVIDIA."
     ok "PyTorch CUDA installe"
@@ -179,8 +189,17 @@ fi
 # =============================================================
 step "Etape 6 : Dependances Python"
 
-pip install -r "$REPO_DIR/requirements.txt" -q
-ok "Dependances installees"
+# Installer les essentiels d abord (ne peut pas echouer)
+pip install numpy requests Pillow flask scipy tqdm huggingface_hub safetensors -q
+ok "Dependances essentielles installees"
+
+# Installer le reste (peut echouer partiellement)
+pip install diffusers transformers accelerate trimesh einops omegaconf plyfile -q 2>/dev/null ||     warn "Certaines dependances optionnelles ont echoue — non bloquant"
+
+# LangSAM separe (dependances complexes)
+pip install git+https://github.com/luca-medeiros/lang-segment-anything.git -q 2>/dev/null ||     warn "LangSAM non installe — /trace utilisera le fallback geometrique"
+
+ok "Installation dependances terminee"
 
 # =============================================================
 # Etape 7 -- TripoSplat
@@ -245,16 +264,36 @@ fi
 # =============================================================
 step "Etape 8b : Sauvegarde chemin Python"
 
+# Trouver le chemin Python complet
 PYTHON_PATH=$(conda run -n gs_c4d which python 2>/dev/null || echo "")
+
 if [ -n "$PYTHON_PATH" ]; then
-    # Convertir chemin WSL -> Windows
-    WIN_PYTHON=$(echo "$PYTHON_PATH" | sed 's|/mnt/\([a-z]\)|\U\1:|' | sed 's|/|\\\\|g')
-    # Sauvegarder dans le plugin pour que C4D le lise automatiquement
+    # S'assurer que c'est l'executable et non un dossier
+    [ -d "$PYTHON_PATH" ] && PYTHON_PATH="$PYTHON_PATH/bin/python3.11"
+
+    info "Chemin Python WSL : $PYTHON_PATH"
+
+    # Convertir en chemin Windows UNC pour WSL2
+    # /home/user/... -> \\wsl$\Ubuntu\home\user\...
+    if echo "$PYTHON_PATH" | grep -q "^/home/"; then
+        WIN_PYTHON=$(echo "$PYTHON_PATH" | sed 's|^/|\\\\wsl$\\\\Ubuntu\\\\|' | sed 's|/|\\\\|g')
+    elif echo "$PYTHON_PATH" | grep -q "^/root/"; then
+        WIN_PYTHON=$(echo "$PYTHON_PATH" | sed 's|^/|\\\\wsl$\\\\Ubuntu\\\\|' | sed 's|/|\\\\|g')
+    elif echo "$PYTHON_PATH" | grep -q "^/mnt/"; then
+        WIN_PYTHON=$(echo "$PYTHON_PATH" | sed 's|/mnt/\([a-z]\)|\U\1:|' | sed 's|/|\\|g')
+    else
+        WIN_PYTHON=$(echo "$PYTHON_PATH" | sed 's|^/|\\\\wsl$\\\\Ubuntu\\\\|' | sed 's|/|\\\\|g')
+    fi
+
+    info "Chemin Python Windows : $WIN_PYTHON"
+
+    # Sauvegarder dans le plugin C4D
     if [ -n "$C4D_PLUGIN_DIR" ]; then
         echo "$WIN_PYTHON" > "$C4D_PLUGIN_DIR/GaussianEditor_C4D/python_path.txt"
-        ok "Chemin Python sauvegarde : $WIN_PYTHON"
+        ok "python_path.txt sauvegarde dans le plugin C4D"
     fi
     echo "$WIN_PYTHON" > "$REPO_DIR/python_path.txt"
+    ok "python_path.txt cree : $WIN_PYTHON"
 fi
 
 step "Etape 9 : Raccourci Bureau Windows"
