@@ -1,5 +1,10 @@
 # GaussianEditor C4D
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
+[![Cinema 4D](https://img.shields.io/badge/Cinema%204D-2025-red.svg)](https://maxon.net)
+[![WSL2](https://img.shields.io/badge/WSL2-Ubuntu-orange.svg)](https://docs.microsoft.com/en-us/windows/wsl/)
+
 Plugin Cinema 4D pour générer, composer et éditer des **Gaussian Splats 3D** directement depuis une image, en utilisant [TripoSplat](https://github.com/VAST-AI-Research/TripoSplat).
 
 ---
@@ -41,7 +46,7 @@ Plugin Cinema 4D pour générer, composer et éditer des **Gaussian Splats 3D** 
 
 ```bash
 # 1. Cloner le repo dans WSL2
-git clone https://github.com/TON_USER/GaussianEditor_C4D
+git clone https://github.com/stamboulii/GaussianEditor_C4D
 cd GaussianEditor_C4D
 
 # 2. Lancer l'installation automatique
