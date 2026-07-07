@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# C4D
+*.bak
+server_log.txt
+*.c4d
+
+# PLY / 3D assets (générés, pas dans le repo)
+ui_result/
+scene/
+*.ply
+*.splat
+*.obj
+*.mtl
+
+# Poids TripoSplat (trop lourds, téléchargés par install.sh)
+ckpts/
+
+# Environnements
+.env
+.venv
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
